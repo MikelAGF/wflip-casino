@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>WFLIP — Private preview</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23100d21'/%3E%3Ctext x='32' y='46' font-family='Arial Black,Arial' font-weight='900' font-size='40' text-anchor='middle' fill='%23c6e86f'%3EW%3C/text%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box;margin:0}
+body{min-height:100vh;display:grid;place-items:center;background:#100d21;color:#f8f8e6;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden}
+body::before{content:"";position:fixed;inset:0;background:
+  radial-gradient(700px 500px at 15% 0%,rgba(224,74,100,.22),transparent 60%),
+  radial-gradient(700px 500px at 100% 100%,rgba(46,179,173,.25),transparent 60%);pointer-events:none}
+.px{position:fixed;width:10px;height:10px;opacity:.7;animation:fall linear infinite}
+@keyframes fall{from{transform:translate(0,-20px)}to{transform:translate(-120px,110vh)}}
+.box{position:relative;width:min(380px,90vw);padding:30px 26px 24px;background:#18142c;border:1px solid rgba(248,248,230,.12);border-radius:20px;box-shadow:0 30px 80px -20px #000,0 0 60px -30px #c6e86f;text-align:center}
+h1{font:900 54px/1 system-ui,Arial Black,sans-serif;letter-spacing:-.02em;text-shadow:4px 4px 0 #e04a64;position:relative;display:inline-block}
+h1::after{content:"WFLIP";position:absolute;left:0;top:0;color:#c6e86f;text-shadow:none;clip-path:inset(100% 0 0 0);animation:gl 2.8s steps(1) infinite}
+@keyframes gl{0%,84%,100%{clip-path:inset(100% 0 0 0);transform:none}86%{clip-path:inset(10% 0 55% 0);transform:translate(-6px,0)}90%{clip-path:inset(60% 0 8% 0);transform:translate(5px,0)}}
+.tag{display:inline-block;margin:10px 0 22px;font-size:10px;font-weight:800;letter-spacing:.18em;background:#c6e86f;color:#100d21;padding:4px 8px}
+p{font-size:13px;color:#a9a5bd;margin-bottom:14px}
+form{display:flex;gap:8px}
+input{flex:1;min-width:0;height:46px;border-radius:12px;border:1px solid rgba(248,248,230,.16);background:#100d21;color:#f8f8e6;padding:0 14px;font-size:15px;outline:none;transition:.2s}
+input:focus{border-color:#c6e86f;box-shadow:0 0 0 3px rgba(198,232,111,.18)}
+button{height:46px;padding:0 18px;border:0;border-radius:12px;background:#c6e86f;color:#100d21;font-weight:800;font-size:14px;cursor:pointer;transition:transform .2s}
+button:hover{transform:translateY(-2px)}
+button:disabled{opacity:.6;cursor:wait}
+.err{color:#ff5c7a;font-size:12.5px;height:18px;margin-top:10px}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.bar{height:4px;border-radius:4px;background:rgba(248,248,230,.08);margin-top:16px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2eb3ad,#c6e86f);transition:width .2s}
+small{display:block;margin-top:8px;font-size:11px;color:#6b6782}
+label{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font-size:12px;color:#8f8ca6;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="box" id="box">
+  <h1>WFLIP</h1><br><span class="tag">PRIVATE PREVIEW</span>
+  <p>Enter the password to open the casino.</p>
+  <form id="f"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" autofocus><button id="go">Enter</button></form>
+  <label><input type="checkbox" id="rem" checked style="flex:none;width:14px;height:14px"> Remember on this device</label>
+  <div class="err" id="err"></div>
+  <div class="bar"><i id="bar"></i></div><small id="st">Loading…</small>
+</div>
+<script>
+(() => {
+  const ITER = 600000, $ = id => document.getElementById(id), KEY = "wflip-k";
+  const cols = ["#c6e86f", "#e04a64", "#2eb3ad", "#f8f8e6", "#ee8a3a"];
+  for (let i = 0; i < 26; i++) { const d = document.createElement("i"); d.className = "px"; d.style.cssText = `left:${Math.random() * 110}vw;background:${cols[i % 5]};animation-duration:${6 + Math.random() * 9}s;animation-delay:-${Math.random() * 12}s;width:${[6, 8, 10, 14][i % 4]}px;height:${[6, 8, 10, 14][i % 4]}px`; document.body.prepend(d); }
+  const data = new Promise((res, rej) => {
+    const x = new XMLHttpRequest();
+    x.open("GET", "p.bin"); x.responseType = "arraybuffer";
+    x.onprogress = e => { if (e.lengthComputable) { $("bar").style.width = (e.loaded / e.total * 100) + "%"; $("st").textContent = "Loading " + Math.round(e.loaded / 1048576) + " / " + Math.round(e.total / 1048576) + " MB"; } };
+    x.onload = () => { if (x.status === 200) { $("bar").style.width = "100%"; $("st").textContent = "Ready"; res(new Uint8Array(x.response)); } else rej(x.status); };
+    x.onerror = rej; x.send();
+  });
+  async function decrypt(rawKey) {
+    const buf = await data, iv = buf.slice(16, 28), ct = buf.slice(28);
+    const key = await crypto.subtle.importKey("raw", rawKey, "AES-GCM", false, ["decrypt"]);
+    const gz = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
+    return new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+  }
+  const show = html => { document.open(); document.write(html); document.close(); };
+  async function derive(pw) {
+    const buf = await data, salt = buf.slice(0, 16);
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveBits"]);
+    return new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations: ITER, hash: "SHA-256" }, base, 256));
+  }
+  const b64 = u => btoa(String.fromCharCode(...u)), unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+  let saved = null; try { saved = localStorage.getItem(KEY); } catch (e) {}
+  if (saved) { $("st").textContent = "Unlocking…"; decrypt(unb64(saved)).then(show).catch(() => { try { localStorage.removeItem(KEY); } catch (e) {} }); }
+  $("f").addEventListener("submit", async e => {
+    e.preventDefault();
+    const pw = $("pw").value; if (!pw) return;
+    $("go").disabled = true; $("err").textContent = ""; $("st").textContent = "Unlocking…";
+    try {
+      const raw = await derive(pw), html = await decrypt(raw);
+      if ($("rem").checked) try { localStorage.setItem(KEY, b64(raw)); } catch (e) {}
+      show(html);
+    } catch (err) {
+      $("go").disabled = false; $("err").textContent = "Wrong password"; $("st").textContent = "Ready";
+      $("box").classList.remove("shake"); void $("box").offsetWidth; $("box").classList.add("shake"); $("pw").select();
+    }
+  });
+})();
+</script>
+</body>
+</html>
